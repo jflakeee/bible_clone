@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from 'react';
 import { StrongsEntry } from '@/types/bible';
 import { useHistoryStore } from '@/stores/historyStore';
 import StrongsPopover from '@/components/bible/StrongsPopover';
+import { fetchStrongsEntry, fetchStrongsSearch } from '@/lib/client-api';
 
 export default function StrongsBrowsePage() {
   const [query, setQuery] = useState('');
@@ -30,24 +31,16 @@ export default function StrongsBrowsePage() {
       try {
         // If the query looks like a Strong's number, do a direct lookup
         if (/^[HhGg]\d+$/.test(q)) {
-          const res = await fetch(`/api/strongs/${encodeURIComponent(q.toUpperCase())}`);
-          if (res.ok) {
-            const data: StrongsEntry = await res.json();
-            setResults([data]);
+          const entry = await fetchStrongsEntry(q.toUpperCase());
+          if (entry) {
+            setResults([entry]);
           } else {
             setResults([]);
           }
         } else {
-          // Search by keyword via the search API
-          const res = await fetch(
-            `/api/strongs/search?q=${encodeURIComponent(q)}`
-          );
-          if (res.ok) {
-            const data: StrongsEntry[] = await res.json();
-            setResults(data);
-          } else {
-            setResults([]);
-          }
+          // Search by keyword
+          const data = await fetchStrongsSearch(q);
+          setResults(data);
         }
       } catch {
         setResults([]);

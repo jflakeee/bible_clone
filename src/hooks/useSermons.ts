@@ -2,6 +2,11 @@
 
 import { useState, useCallback } from 'react';
 import { Sermon, SermonSearchResult } from '@/types/sermon';
+import {
+  fetchSermons,
+  fetchSermonById,
+  fetchSermonRecommendations,
+} from '@/lib/client-api';
 
 interface UseSermonsReturn {
   results: SermonSearchResult[];
@@ -28,14 +33,7 @@ export function useSermons(): UseSermonsReturn {
       setLoading(true);
       setError(null);
       try {
-        const params = new URLSearchParams();
-        if (query) params.set('q', query);
-        if (tag) params.set('tag', tag);
-        if (verse) params.set('verse', verse);
-
-        const res = await fetch(`/api/sermons?${params.toString()}`);
-        if (!res.ok) throw new Error('검색 중 오류가 발생했습니다');
-        const data = await res.json();
+        const data = fetchSermons({ q: query, tag, verse });
         setResults(data.results);
       } catch (err) {
         setError(
@@ -53,9 +51,7 @@ export function useSermons(): UseSermonsReturn {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/sermons/${id}`);
-      if (!res.ok) throw new Error('설교를 찾을 수 없습니다');
-      const data = await res.json();
+      const data = fetchSermonById(id);
       setSermon(data.sermon);
     } catch (err) {
       setError(
@@ -85,12 +81,7 @@ export function useSermons(): UseSermonsReturn {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams();
-      params.set('verses', verses.join(','));
-
-      const res = await fetch(`/api/sermons/recommend?${params.toString()}`);
-      if (!res.ok) throw new Error('추천 설교를 불러올 수 없습니다');
-      const data = await res.json();
+      const data = fetchSermonRecommendations(verses);
       setRecommendations(data.sermons);
     } catch (err) {
       setError(

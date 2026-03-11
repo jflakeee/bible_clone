@@ -263,38 +263,16 @@ describe('BibleBrainTTSService (via getTTSService)', () => {
 // ── googleTTS API call ──
 
 describe('googleTTS', () => {
-  it('calls /api/tts and returns ArrayBuffer on success', async () => {
-    const mockArrayBuffer = new ArrayBuffer(8);
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      arrayBuffer: () => Promise.resolve(mockArrayBuffer),
-    });
-
-    const result = await googleTTS('hello', 'en-US', 1.0);
-    expect(result).toBe(mockArrayBuffer);
-    expect(global.fetch).toHaveBeenCalledWith('/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: 'hello', language: 'en-US', speed: 1.0 }),
-    });
+  it('throws error indicating static build limitation', async () => {
+    await expect(googleTTS('hello', 'en-US', 1.0)).rejects.toThrow(
+      'Google Cloud TTS는 정적 빌드에서 사용할 수 없습니다'
+    );
   });
 
-  it('throws on non-ok response', async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ error: 'API key missing' }),
-    });
-
-    await expect(googleTTS('test', 'ko-KR', 1)).rejects.toThrow('API key missing');
-  });
-
-  it('throws generic message when error JSON parse fails', async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: false,
-      json: () => Promise.reject(new Error('parse error')),
-    });
-
-    await expect(googleTTS('test', 'ko-KR', 1)).rejects.toThrow('Unknown error');
+  it('throws regardless of input parameters', async () => {
+    await expect(googleTTS('test', 'ko-KR', 1)).rejects.toThrow(
+      '브라우저 TTS를 사용해주세요'
+    );
   });
 });
 

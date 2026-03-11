@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { StrongsEntry } from '@/types/bible';
+import { fetchStrongsEntry } from '@/lib/client-api';
 
 export function useStrongs() {
   const [entry, setEntry] = useState<StrongsEntry | null>(null);
@@ -12,12 +13,10 @@ export function useStrongs() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/strongs/${encodeURIComponent(number)}`);
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Not found');
+      const data = await fetchStrongsEntry(number);
+      if (!data) {
+        throw new Error('Not found');
       }
-      const data: StrongsEntry = await res.json();
       setEntry(data);
     } catch (err) {
       setEntry(null);

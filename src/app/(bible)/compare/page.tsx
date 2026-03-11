@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { BIBLE_BOOKS, SUPPORTED_VERSIONS } from '@/lib/constants';
 import { CompareResult } from '@/types/bible';
 import CompareView from '@/components/bible/CompareView';
+import { fetchBibleCompare } from '@/lib/client-api';
 
 export default function ComparePage() {
   const [bookId, setBookId] = useState(1);
@@ -24,17 +25,14 @@ export default function ComparePage() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({
-        book: bookId.toString(),
-        chapter: chapter.toString(),
-        verseStart: verseStart.toString(),
-        verseEnd: verseEnd.toString(),
-        versions: selectedVersions.join(','),
+      const data = await fetchBibleCompare({
+        book: bookId,
+        chapter,
+        verseStart,
+        verseEnd,
+        versions: selectedVersions,
       });
-      const res = await fetch(`/api/bible/compare?${params}`);
-      if (!res.ok) throw new Error('비교 데이터를 불러오지 못했습니다');
-      const data = await res.json();
-      setResults(data.data?.results || data.results || []);
+      setResults(data.results || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : '오류가 발생했습니다');
     } finally {

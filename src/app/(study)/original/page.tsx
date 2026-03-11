@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { BIBLE_BOOKS } from '@/lib/constants';
 import { useOriginalText } from '@/hooks/useOriginalText';
 import OriginalTextView from '@/components/study/OriginalTextView';
+import { fetchBibleChapter } from '@/lib/client-api';
 
 export default function OriginalTextPage() {
   const [bookId, setBookId] = useState(1); // Default: Genesis
@@ -46,19 +47,9 @@ export default function OriginalTextPage() {
 
     (async () => {
       try {
-        const res = await fetch(
-          `/api/bible/krv/${encodeURIComponent(bookId)}/${encodeURIComponent(chapter)}`
-        );
-        if (!res.ok) throw new Error('Translation fetch failed');
-        const data = await res.json();
+        const data = await fetchBibleChapter('krv', bookId, chapter);
         if (!cancelled) {
-          const vList = (data.verses || []).map(
-            (v: { number: number; text: string }) => ({
-              verse: v.number,
-              text: v.text,
-            })
-          );
-          setTranslationVerses(vList);
+          setTranslationVerses(data.verses);
         }
       } catch {
         if (!cancelled) setTranslationVerses([]);

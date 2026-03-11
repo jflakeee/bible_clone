@@ -202,8 +202,7 @@ describe('multilang-api', () => {
       expect(result.verses[0].text).toBe('In the beginning...');
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://bible.helloao.org/api/engKJV/GEN/1.json',
-        expect.objectContaining({ next: { revalidate: 3600 } })
+        'https://bible.helloao.org/api/engKJV/GEN/1.json'
       );
     });
 

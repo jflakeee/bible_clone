@@ -1,13 +1,15 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useSearch } from '@/hooks/useSearch';
 
-// Mock global fetch
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+// Mock @/lib/client-api
+const mockFetchSearch = jest.fn();
+jest.mock('@/lib/client-api', () => ({
+  fetchSearch: (...args: unknown[]) => mockFetchSearch(...args),
+}));
 
 describe('useSearch', () => {
   beforeEach(() => {
-    mockFetch.mockReset();
+    mockFetchSearch.mockReset();
   });
 
   it('initializes with empty results, no loading, no error', () => {
@@ -25,7 +27,7 @@ describe('useSearch', () => {
       await result.current.search('');
     });
 
-    expect(mockFetch).not.toHaveBeenCalled();
+    expect(mockFetchSearch).not.toHaveBeenCalled();
     expect(result.current.results).toEqual([]);
   });
 
@@ -36,7 +38,7 @@ describe('useSearch', () => {
       await result.current.search('   ');
     });
 
-    expect(mockFetch).not.toHaveBeenCalled();
+    expect(mockFetchSearch).not.toHaveBeenCalled();
     expect(result.current.results).toEqual([]);
   });
 
@@ -52,10 +54,7 @@ describe('useSearch', () => {
       },
     ];
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ results: mockResults }),
-    });
+    mockFetchSearch.mockResolvedValueOnce({ results: mockResults });
 
     const { result } = renderHook(() => useSearch());
 
@@ -63,20 +62,19 @@ describe('useSearch', () => {
       await result.current.search('하나님');
     });
 
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/search?q=%ED%95%98%EB%82%98%EB%8B%98&version=krv&testament=all')
-    );
+    expect(mockFetchSearch).toHaveBeenCalledTimes(1);
+    expect(mockFetchSearch).toHaveBeenCalledWith({
+      q: '하나님',
+      version: 'krv',
+      testament: 'all',
+    });
     expect(result.current.results).toEqual(mockResults);
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeNull();
   });
 
   it('passes version and testament parameters', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ results: [] }),
-    });
+    mockFetchSearch.mockResolvedValueOnce({ results: [] });
 
     const { result } = renderHook(() => useSearch());
 
@@ -84,19 +82,15 @@ describe('useSearch', () => {
       await result.current.search('love', 'kjv', 'nt');
     });
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('version=kjv')
-    );
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('testament=nt')
-    );
+    expect(mockFetchSearch).toHaveBeenCalledWith({
+      q: 'love',
+      version: 'kjv',
+      testament: 'nt',
+    });
   });
 
   it('uses default version=krv and testament=all', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ results: [] }),
-    });
+    mockFetchSearch.mockResolvedValueOnce({ results: [] });
 
     const { result } = renderHook(() => useSearch());
 
@@ -104,9 +98,11 @@ describe('useSearch', () => {
       await result.current.search('test');
     });
 
-    const calledUrl = mockFetch.mock.calls[0][0] as string;
-    expect(calledUrl).toContain('version=krv');
-    expect(calledUrl).toContain('testament=all');
+    expect(mockFetchSearch).toHaveBeenCalledWith({
+      q: 'test',
+      version: 'krv',
+      testament: 'all',
+    });
   });
 
   it('sets loading to true during search', async () => {
@@ -115,7 +111,7 @@ describe('useSearch', () => {
       resolvePromise = resolve;
     });
 
-    mockFetch.mockReturnValueOnce(fetchPromise);
+    mockFetchSearch.mockReturnValueOnce(fetchPromise);
 
     const { result } = renderHook(() => useSearch());
 
@@ -128,10 +124,7 @@ describe('useSearch', () => {
     expect(result.current.loading).toBe(true);
 
     await act(async () => {
-      resolvePromise!({
-        ok: true,
-        json: async () => ({ results: [] }),
-      });
+      resolvePromise!({ results: [] });
       await searchPromise;
     });
 
@@ -139,7 +132,7 @@ describe('useSearch', () => {
   });
 
   it('sets error when fetch fails with network error', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Network error'));
+    mockFetchSearch.mockRejectedValueOnce(new Error('Network error'));
 
     const { result } = renderHook(() => useSearch());
 
@@ -152,11 +145,8 @@ describe('useSearch', () => {
     expect(result.current.loading).toBe(false);
   });
 
-  it('sets error when response is not ok', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-    });
+  it('sets error when fetchSearch throws', async () => {
+    mockFetchSearch.mockRejectedValueOnce(new Error('Search failed'));
 
     const { result } = renderHook(() => useSearch());
 
@@ -170,7 +160,7 @@ describe('useSearch', () => {
 
   it('clears error on new successful search', async () => {
     // First search fails
-    mockFetch.mockRejectedValueOnce(new Error('Network error'));
+    mockFetchSearch.mockRejectedValueOnce(new Error('Network error'));
 
     const { result } = renderHook(() => useSearch());
 
@@ -181,10 +171,7 @@ describe('useSearch', () => {
     expect(result.current.error).toBe('Network error');
 
     // Second search succeeds
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ results: [] }),
-    });
+    mockFetchSearch.mockResolvedValueOnce({ results: [] });
 
     await act(async () => {
       await result.current.search('test2');
@@ -195,11 +182,8 @@ describe('useSearch', () => {
 
   it('clears results when search is called with empty query', async () => {
     // First populate results
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        results: [{ version: 'krv', bookName: '창세기', chapter: 1, verse: 1, text: 'test', highlight: 'test' }],
-      }),
+    mockFetchSearch.mockResolvedValueOnce({
+      results: [{ version: 'krv', bookName: '창세기', chapter: 1, verse: 1, text: 'test', highlight: 'test' }],
     });
 
     const { result } = renderHook(() => useSearch());
@@ -219,10 +203,7 @@ describe('useSearch', () => {
   });
 
   it('handles response with no results field gracefully', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({}),
-    });
+    mockFetchSearch.mockResolvedValueOnce({});
 
     const { result } = renderHook(() => useSearch());
 
@@ -234,7 +215,7 @@ describe('useSearch', () => {
   });
 
   it('handles non-Error thrown values', async () => {
-    mockFetch.mockRejectedValueOnce('string error');
+    mockFetchSearch.mockRejectedValueOnce('string error');
 
     const { result } = renderHook(() => useSearch());
 

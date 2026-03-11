@@ -94,8 +94,7 @@ describe('getAvailableTranslations', () => {
     const result = await getAvailableTranslations();
     expect(result).toEqual(translations);
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/available_translations.json'),
-      expect.any(Object)
+      expect.stringContaining('/available_translations.json')
     );
   });
 
@@ -133,8 +132,7 @@ describe('getBooks', () => {
     expect(result).toEqual(books);
     // krv maps to kor_old
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/kor_old/books.json'),
-      expect.any(Object)
+      expect.stringContaining('/kor_old/books.json')
     );
   });
 
@@ -174,8 +172,7 @@ describe('getChapter', () => {
 
     await getChapter('web', 'Genesis', 1);
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/ENGWEBP/GEN/1.json'),
-      expect.any(Object)
+      expect.stringContaining('/ENGWEBP/GEN/1.json')
     );
   });
 

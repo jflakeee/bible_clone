@@ -327,22 +327,15 @@ class BibleBrainTTSService implements TTSService {
 // ---------------------
 
 export async function googleTTS(
-  text: string,
-  language: string,
-  speed: number
+  _text: string,
+  _language: string,
+  _speed: number
 ): Promise<ArrayBuffer> {
-  const response = await fetch('/api/tts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, language, speed }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(error.error || 'Google TTS request failed');
-  }
-
-  return response.arrayBuffer();
+  // Google Cloud TTS requires a server-side API key proxy.
+  // In static export mode, we only support browser TTS.
+  throw new Error(
+    'Google Cloud TTS는 정적 빌드에서 사용할 수 없습니다. 브라우저 TTS를 사용해주세요.'
+  );
 }
 
 // ---------------------

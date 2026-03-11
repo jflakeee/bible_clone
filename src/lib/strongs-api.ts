@@ -37,7 +37,7 @@ function parseStrongsJs(text: string): Record<string, RawStrongsEntry> {
 
 async function getHebrewDict(): Promise<Record<string, RawStrongsEntry>> {
   if (!hebrewCache) {
-    const res = await fetch(STRONGS_HEBREW_URL, { next: { revalidate: 86400 } });
+    const res = await fetch(STRONGS_HEBREW_URL);
     if (!res.ok) throw new Error(`Failed to fetch Hebrew dictionary: ${res.status}`);
     const text = await res.text();
     hebrewCache = parseStrongsJs(text);
@@ -47,7 +47,7 @@ async function getHebrewDict(): Promise<Record<string, RawStrongsEntry>> {
 
 async function getGreekDict(): Promise<Record<string, RawStrongsEntry>> {
   if (!greekCache) {
-    const res = await fetch(STRONGS_GREEK_URL, { next: { revalidate: 86400 } });
+    const res = await fetch(STRONGS_GREEK_URL);
     if (!res.ok) throw new Error(`Failed to fetch Greek dictionary: ${res.status}`);
     const text = await res.text();
     greekCache = parseStrongsJs(text);

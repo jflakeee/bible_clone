@@ -1,6 +1,7 @@
 'use client';
 import { useState, useCallback } from 'react';
 import { SearchResult } from '@/types/bible';
+import { fetchSearch } from '@/lib/client-api';
 
 export function useSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -15,10 +16,7 @@ export function useSearch() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ q: query, version, testament });
-      const res = await fetch(`/api/search?${params}`);
-      if (!res.ok) throw new Error('Search failed');
-      const data = await res.json();
+      const data = await fetchSearch({ q: query, version, testament });
       setResults(data.results || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Search failed');

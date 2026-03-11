@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { VerseWord } from '@/types/bible';
+import { fetchOriginalText } from '@/lib/client-api';
 
 interface OriginalTextState {
   verses: VerseWord[][];
@@ -18,17 +19,10 @@ export function useOriginalText() {
     language: null,
   });
 
-  const fetchOriginalText = useCallback(async (book: number, chapter: number) => {
+  const fetchOriginal = useCallback(async (book: number, chapter: number) => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const res = await fetch(
-        `/api/bible/original/${encodeURIComponent(book)}/${encodeURIComponent(chapter)}`
-      );
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Failed to fetch original text (${res.status})`);
-      }
-      const data = await res.json();
+      const data = await fetchOriginalText(book, chapter);
       setState({
         verses: data.verses || [],
         loading: false,
@@ -51,7 +45,7 @@ export function useOriginalText() {
 
   return {
     ...state,
-    fetchOriginalText,
+    fetchOriginalText: fetchOriginal,
     clear,
   };
 }

@@ -1,12 +1,15 @@
 import { renderHook, act } from '@testing-library/react';
 import { useOriginalText } from '@/hooks/useOriginalText';
 
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+// Mock @/lib/client-api
+const mockFetchOriginalText = jest.fn();
+jest.mock('@/lib/client-api', () => ({
+  fetchOriginalText: (...args: unknown[]) => mockFetchOriginalText(...args),
+}));
 
 describe('useOriginalText', () => {
   beforeEach(() => {
-    mockFetch.mockReset();
+    mockFetchOriginalText.mockReset();
   });
 
   it('initializes with empty state', () => {
@@ -22,10 +25,7 @@ describe('useOriginalText', () => {
       verses: [[{ word: 'בְּרֵאשִׁ֖ית', strongsNumber: 'H7225' }]],
       language: 'hebrew',
     };
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockData,
-    });
+    mockFetchOriginalText.mockResolvedValueOnce(mockData);
 
     const { result } = renderHook(() => useOriginalText());
 
@@ -42,7 +42,7 @@ describe('useOriginalText', () => {
   it('sets loading true during fetch', async () => {
     let resolvePromise: (v: unknown) => void;
     const pending = new Promise((resolve) => { resolvePromise = resolve; });
-    mockFetch.mockReturnValueOnce(pending);
+    mockFetchOriginalText.mockReturnValueOnce(pending);
 
     const { result } = renderHook(() => useOriginalText());
 
@@ -54,19 +54,15 @@ describe('useOriginalText', () => {
     expect(result.current.loading).toBe(true);
 
     await act(async () => {
-      resolvePromise!({ ok: true, json: async () => ({ verses: [], language: null }) });
+      resolvePromise!({ verses: [], language: null });
       await fetchPromise;
     });
 
     expect(result.current.loading).toBe(false);
   });
 
-  it('handles fetch error with error message from response', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 404,
-      json: async () => ({ error: 'Book not found' }),
-    });
+  it('handles error from fetchOriginalText', async () => {
+    mockFetchOriginalText.mockRejectedValueOnce(new Error('Book not found'));
 
     const { result } = renderHook(() => useOriginalText());
 
@@ -79,24 +75,8 @@ describe('useOriginalText', () => {
     expect(result.current.language).toBeNull();
   });
 
-  it('handles fetch error with status code when no error message', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-      json: async () => ({}),
-    });
-
-    const { result } = renderHook(() => useOriginalText());
-
-    await act(async () => {
-      await result.current.fetchOriginalText(1, 1);
-    });
-
-    expect(result.current.error).toBe('Failed to fetch original text (500)');
-  });
-
   it('handles network error', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Network error'));
+    mockFetchOriginalText.mockRejectedValueOnce(new Error('Network error'));
 
     const { result } = renderHook(() => useOriginalText());
 
@@ -109,7 +89,7 @@ describe('useOriginalText', () => {
   });
 
   it('handles non-Error thrown value', async () => {
-    mockFetch.mockRejectedValueOnce('string error');
+    mockFetchOriginalText.mockRejectedValueOnce('string error');
 
     const { result } = renderHook(() => useOriginalText());
 
@@ -120,26 +100,10 @@ describe('useOriginalText', () => {
     expect(result.current.error).toBe('Failed to load original text');
   });
 
-  it('handles json parse failure on error response', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-      json: async () => { throw new Error('parse error'); },
-    });
-
-    const { result } = renderHook(() => useOriginalText());
-
-    await act(async () => {
-      await result.current.fetchOriginalText(1, 1);
-    });
-
-    expect(result.current.error).toBe('Failed to fetch original text (500)');
-  });
-
   it('clear resets state', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ verses: [[{ word: 'test' }]], language: 'greek' }),
+    mockFetchOriginalText.mockResolvedValueOnce({
+      verses: [[{ word: 'test' }]],
+      language: 'greek',
     });
 
     const { result } = renderHook(() => useOriginalText());
@@ -159,11 +123,8 @@ describe('useOriginalText', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('encodes book and chapter in URL', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ verses: [], language: null }),
-    });
+  it('calls fetchOriginalText with book and chapter', async () => {
+    mockFetchOriginalText.mockResolvedValueOnce({ verses: [], language: null });
 
     const { result } = renderHook(() => useOriginalText());
 
@@ -171,6 +132,6 @@ describe('useOriginalText', () => {
       await result.current.fetchOriginalText(1, 1);
     });
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/bible/original/1/1');
+    expect(mockFetchOriginalText).toHaveBeenCalledWith(1, 1);
   });
 });

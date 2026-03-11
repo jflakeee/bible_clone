@@ -6,6 +6,7 @@ import { t } from '@/lib/i18n';
 import { useLanguageStore } from '@/stores/languageStore';
 import type { BibleTranslation, MultiLangChapterResponse } from '@/lib/multilang-api';
 import TranslationBrowser from '@/components/bible/TranslationBrowser';
+import { fetchBibleTranslations } from '@/lib/client-api';
 
 interface CompareEntry {
   translation: BibleTranslation;
@@ -40,9 +41,7 @@ export default function MultiLangPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch('/api/bible/translations');
-        if (!res.ok) throw new Error('Failed to load translations');
-        const data = await res.json();
+        const data = await fetchBibleTranslations();
         setTranslationsByLang(data.translations || {});
       } catch {
         // Silently fail - user will see empty browser

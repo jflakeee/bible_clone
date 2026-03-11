@@ -97,9 +97,7 @@ export async function getAvailableTranslations(): Promise<BibleTranslation[]> {
     return translationsCache;
   }
 
-  const res = await fetch(`${API_BASE}/available_translations.json`, {
-    next: { revalidate: 86400 },
-  });
+  const res = await fetch(`${API_BASE}/available_translations.json`);
 
   if (!res.ok) {
     throw new Error(`Failed to fetch translations: ${res.status}`);
@@ -156,9 +154,7 @@ export async function getChapterInLanguage(
   book: string,
   chapter: number
 ): Promise<MultiLangChapterResponse> {
-  const res = await fetch(`${API_BASE}/${translationId}/${book}/${chapter}.json`, {
-    next: { revalidate: 3600 },
-  });
+  const res = await fetch(`${API_BASE}/${translationId}/${book}/${chapter}.json`);
 
   if (!res.ok) {
     throw new Error(

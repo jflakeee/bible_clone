@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { VerseWord, StrongsEntry } from '@/types/bible';
 import StrongsPopover from '@/components/bible/StrongsPopover';
+import { fetchStrongsEntry } from '@/lib/client-api';
 
 interface OriginalTextViewProps {
   verses: VerseWord[][];
@@ -38,13 +39,11 @@ export default function OriginalTextView({
       setStrongsEntry(null);
 
       try {
-        const res = await fetch(`/api/strongs/${encodeURIComponent(strongsNumber)}`);
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || 'Not found');
+        const entry = await fetchStrongsEntry(strongsNumber);
+        if (!entry) {
+          throw new Error('Not found');
         }
-        const data: StrongsEntry = await res.json();
-        setStrongsEntry(data);
+        setStrongsEntry(entry);
       } catch (err) {
         setStrongsError(err instanceof Error ? err.message : 'Lookup failed');
       } finally {

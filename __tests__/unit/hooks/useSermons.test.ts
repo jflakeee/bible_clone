@@ -1,8 +1,15 @@
 import { renderHook, act } from '@testing-library/react';
 import { useSermons } from '@/hooks/useSermons';
 
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+// Mock @/lib/client-api
+const mockFetchSermons = jest.fn();
+const mockFetchSermonById = jest.fn();
+const mockFetchSermonRecommendations = jest.fn();
+jest.mock('@/lib/client-api', () => ({
+  fetchSermons: (...args: unknown[]) => mockFetchSermons(...args),
+  fetchSermonById: (...args: unknown[]) => mockFetchSermonById(...args),
+  fetchSermonRecommendations: (...args: unknown[]) => mockFetchSermonRecommendations(...args),
+}));
 
 const mockResults = [
   {
@@ -24,7 +31,9 @@ const mockResults = [
 
 describe('useSermons', () => {
   beforeEach(() => {
-    mockFetch.mockReset();
+    mockFetchSermons.mockReset();
+    mockFetchSermonById.mockReset();
+    mockFetchSermonRecommendations.mockReset();
   });
 
   it('initializes with empty state', () => {
@@ -37,10 +46,8 @@ describe('useSermons', () => {
   });
 
   it('search fetches results', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ results: mockResults }),
-    });
+    // fetchSermons is called synchronously in the hook (no await)
+    mockFetchSermons.mockReturnValue({ results: mockResults });
 
     const { result } = renderHook(() => useSermons());
 
@@ -48,16 +55,17 @@ describe('useSermons', () => {
       await result.current.search('faith');
     });
 
-    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('/api/sermons?q=faith'));
+    expect(mockFetchSermons).toHaveBeenCalledWith({
+      q: 'faith',
+      tag: undefined,
+      verse: undefined,
+    });
     expect(result.current.results).toEqual(mockResults);
     expect(result.current.loading).toBe(false);
   });
 
   it('search passes tag and verse params', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ results: [] }),
-    });
+    mockFetchSermons.mockReturnValue({ results: [] });
 
     const { result } = renderHook(() => useSermons());
 
@@ -65,14 +73,17 @@ describe('useSermons', () => {
       await result.current.search('query', 'tag1', 'Gen 1:1');
     });
 
-    const calledUrl = mockFetch.mock.calls[0][0] as string;
-    expect(calledUrl).toContain('q=query');
-    expect(calledUrl).toContain('tag=tag1');
-    expect(calledUrl).toContain('verse=Gen+1%3A1');
+    expect(mockFetchSermons).toHaveBeenCalledWith({
+      q: 'query',
+      tag: 'tag1',
+      verse: 'Gen 1:1',
+    });
   });
 
   it('search handles error', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
+    mockFetchSermons.mockImplementation(() => {
+      throw new Error('알 수 없는 오류가 발생했습니다');
+    });
 
     const { result } = renderHook(() => useSermons());
 
@@ -80,12 +91,14 @@ describe('useSermons', () => {
       await result.current.search('test');
     });
 
-    expect(result.current.error).toBe('검색 중 오류가 발생했습니다');
+    expect(result.current.error).toBe('알 수 없는 오류가 발생했습니다');
     expect(result.current.results).toEqual([]);
   });
 
-  it('search handles network error', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Network down'));
+  it('search handles non-Error thrown value', async () => {
+    mockFetchSermons.mockImplementation(() => {
+      throw 'string error';
+    });
 
     const { result } = renderHook(() => useSermons());
 
@@ -93,15 +106,13 @@ describe('useSermons', () => {
       await result.current.search('test');
     });
 
-    expect(result.current.error).toBe('Network down');
+    expect(result.current.error).toBe('알 수 없는 오류가 발생했습니다');
   });
 
   it('getById fetches a sermon', async () => {
     const mockSermon = { id: '1', title: 'Test', preacher: 'Kim' };
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ sermon: mockSermon }),
-    });
+    // fetchSermonById is called synchronously in the hook (no await)
+    mockFetchSermonById.mockReturnValue({ sermon: mockSermon });
 
     const { result } = renderHook(() => useSermons());
 
@@ -109,12 +120,14 @@ describe('useSermons', () => {
       await result.current.getById('1');
     });
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/sermons/1');
+    expect(mockFetchSermonById).toHaveBeenCalledWith('1');
     expect(result.current.sermon).toEqual(mockSermon);
   });
 
   it('getById handles error', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: false, status: 404 });
+    mockFetchSermonById.mockImplementation(() => {
+      throw new Error('설교를 찾을 수 없습니다');
+    });
 
     const { result } = renderHook(() => useSermons());
 
@@ -127,10 +140,7 @@ describe('useSermons', () => {
   });
 
   it('getByVerse calls search with verse param', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ results: [] }),
-    });
+    mockFetchSermons.mockReturnValue({ results: [] });
 
     const { result } = renderHook(() => useSermons());
 
@@ -138,15 +148,15 @@ describe('useSermons', () => {
       await result.current.getByVerse('Gen 1:1');
     });
 
-    const calledUrl = mockFetch.mock.calls[0][0] as string;
-    expect(calledUrl).toContain('verse=Gen+1%3A1');
+    expect(mockFetchSermons).toHaveBeenCalledWith({
+      q: '',
+      tag: undefined,
+      verse: 'Gen 1:1',
+    });
   });
 
   it('getByTag calls search with tag param', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ results: [] }),
-    });
+    mockFetchSermons.mockReturnValue({ results: [] });
 
     const { result } = renderHook(() => useSermons());
 
@@ -154,16 +164,17 @@ describe('useSermons', () => {
       await result.current.getByTag('faith');
     });
 
-    const calledUrl = mockFetch.mock.calls[0][0] as string;
-    expect(calledUrl).toContain('tag=faith');
+    expect(mockFetchSermons).toHaveBeenCalledWith({
+      q: '',
+      tag: 'faith',
+      verse: undefined,
+    });
   });
 
   it('getRecommendations fetches recommendations', async () => {
     const mockSermons = [{ id: '1', title: 'Rec Sermon' }];
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ sermons: mockSermons }),
-    });
+    // fetchSermonRecommendations is called synchronously in the hook (no await)
+    mockFetchSermonRecommendations.mockReturnValue({ sermons: mockSermons });
 
     const { result } = renderHook(() => useSermons());
 
@@ -171,13 +182,14 @@ describe('useSermons', () => {
       await result.current.getRecommendations(['Gen 1:1', 'John 3:16']);
     });
 
-    const calledUrl = mockFetch.mock.calls[0][0] as string;
-    expect(calledUrl).toContain('verses=Gen+1%3A1%2CJohn+3%3A16');
+    expect(mockFetchSermonRecommendations).toHaveBeenCalledWith(['Gen 1:1', 'John 3:16']);
     expect(result.current.recommendations).toEqual(mockSermons);
   });
 
   it('getRecommendations handles error', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
+    mockFetchSermonRecommendations.mockImplementation(() => {
+      throw new Error('추천 설교를 불러올 수 없습니다');
+    });
 
     const { result } = renderHook(() => useSermons());
 

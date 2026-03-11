@@ -80,7 +80,7 @@ async function fetchGreekData(): Promise<Map<string, VerseWord[][]>> {
   if (greekDataCache) return greekDataCache;
 
   try {
-    const res = await fetch(OPEN_GNT_BASE, { next: { revalidate: 86400 } });
+    const res = await fetch(OPEN_GNT_BASE);
     if (!res.ok) throw new Error(`OpenGNT fetch failed: ${res.status}`);
 
     const text = await res.text();

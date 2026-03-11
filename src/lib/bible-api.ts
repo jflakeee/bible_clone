@@ -40,9 +40,7 @@ export interface ApiChapterResponse {
 }
 
 export async function getAvailableTranslations(): Promise<ApiTranslation[]> {
-  const res = await fetch(`${API_BASE}/available_translations.json`, {
-    next: { revalidate: 86400 },
-  });
+  const res = await fetch(`${API_BASE}/available_translations.json`);
   if (!res.ok) {
     throw new Error(`Failed to fetch translations: ${res.status}`);
   }
@@ -52,9 +50,7 @@ export async function getAvailableTranslations(): Promise<ApiTranslation[]> {
 
 export async function getBooks(translationId: string): Promise<ApiBook[]> {
   const tid = getTranslationId(translationId);
-  const res = await fetch(`${API_BASE}/${tid}/books.json`, {
-    next: { revalidate: 86400 },
-  });
+  const res = await fetch(`${API_BASE}/${tid}/books.json`);
   if (!res.ok) {
     throw new Error(`Failed to fetch books for ${tid}: ${res.status}`);
   }
@@ -116,9 +112,7 @@ export async function getChapter(
   const bookId = getBookApiId(book);
   const url = `${API_BASE}/${tid}/${bookId}/${chapter}.json`;
 
-  const res = await fetch(url, {
-    next: { revalidate: 3600 },
-  });
+  const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Failed to fetch ${tid}/${bookId}/${chapter}: ${res.status}`);
   }
