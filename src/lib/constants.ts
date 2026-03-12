@@ -105,3 +105,14 @@ export const BOOK_ID_MAP: Record<string, string> = {
   '1 Peter': '1PE', '2 Peter': '2PE', '1 John': '1JN', '2 John': '2JN',
   '3 John': '3JN', 'Jude': 'JUD', 'Revelation': 'REV',
 };
+
+export const BIBLE_API_BASE = process.env.NEXT_PUBLIC_BIBLE_API_BASE || 'https://bible.helloao.org/api';
+
+export const STRONGS_HEBREW_URL = process.env.NEXT_PUBLIC_STRONGS_HEBREW_URL
+  || 'https://raw.githubusercontent.com/openscriptures/strongs/master/hebrew/strongs-hebrew-dictionary.js';
+
+export const STRONGS_GREEK_URL = process.env.NEXT_PUBLIC_STRONGS_GREEK_URL
+  || 'https://raw.githubusercontent.com/openscriptures/strongs/master/greek/strongs-greek-dictionary.js';
+
+export const OPEN_GNT_URL = process.env.NEXT_PUBLIC_OPEN_GNT_URL
+  || 'https://raw.githubusercontent.com/eliranwong/OpenGNT/master/OpenGNT_BASE_TEXT.tsv';

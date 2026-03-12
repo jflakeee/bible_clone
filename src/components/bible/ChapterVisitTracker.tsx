@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useReadingHistoryStore } from '@/stores/readingHistoryStore';
 import { useHistoryStore } from '@/stores/historyStore';
 
 interface Props {
@@ -19,7 +18,7 @@ export default function ChapterVisitTracker({
   chapter,
   versesCount,
 }: Props) {
-  const { addChapterVisit, addVersesRead } = useReadingHistoryStore();
+  const { addChapterVisit, addVersesRead } = useHistoryStore();
   const addHistory = useHistoryStore((s) => s.addHistory);
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import DailyVerseCard from '@/components/home/DailyVerseCard';
-import { useReadingHistoryStore } from '@/stores/readingHistoryStore';
+import { useHistoryStore } from '@/stores/historyStore';
 
 // Mock next/link
 jest.mock('next/link', () => {
@@ -10,7 +10,7 @@ jest.mock('next/link', () => {
 });
 
 beforeEach(() => {
-  useReadingHistoryStore.setState({
+  useHistoryStore.setState({
     recentChapters: [],
     dailyVerse: null,
     streakDays: 0,
@@ -29,7 +29,7 @@ describe('DailyVerseCard', () => {
 
   it('renders daily verse after mount', async () => {
     const today = new Date().toISOString().split('T')[0];
-    useReadingHistoryStore.setState({
+    useHistoryStore.setState({
       dailyVerse: {
         verse: 1,
         text: '태초에 하나님이 천지를 창조하시니라',
@@ -46,7 +46,7 @@ describe('DailyVerseCard', () => {
 
   it('displays the reference', async () => {
     const today = new Date().toISOString().split('T')[0];
-    useReadingHistoryStore.setState({
+    useHistoryStore.setState({
       dailyVerse: {
         verse: 1,
         text: '태초에 하나님이 천지를 창조하시니라',
@@ -61,7 +61,7 @@ describe('DailyVerseCard', () => {
 
   it('shows "오늘의 말씀" label', async () => {
     const today = new Date().toISOString().split('T')[0];
-    useReadingHistoryStore.setState({
+    useHistoryStore.setState({
       dailyVerse: {
         verse: 1,
         text: 'test text',
@@ -76,7 +76,7 @@ describe('DailyVerseCard', () => {
 
   it('renders read and listen links', async () => {
     const today = new Date().toISOString().split('T')[0];
-    useReadingHistoryStore.setState({
+    useHistoryStore.setState({
       dailyVerse: {
         verse: 1,
         text: 'test text',
@@ -92,7 +92,7 @@ describe('DailyVerseCard', () => {
 
   it('listen link points to /audio', async () => {
     const today = new Date().toISOString().split('T')[0];
-    useReadingHistoryStore.setState({
+    useHistoryStore.setState({
       dailyVerse: {
         verse: 1,
         text: 'test text',

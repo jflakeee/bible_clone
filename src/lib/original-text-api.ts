@@ -1,5 +1,5 @@
 import { VerseWord } from '@/types/bible';
-import { BIBLE_BOOKS } from '@/lib/constants';
+import { BIBLE_BOOKS, OPEN_GNT_URL as OPEN_GNT_BASE } from '@/lib/constants';
 
 /**
  * Original Text API - fetches Hebrew/Greek interlinear data.
@@ -13,9 +13,6 @@ import { BIBLE_BOOKS } from '@/lib/constants';
  */
 
 // --- Greek NT via OpenGNT TSV ---
-
-const OPEN_GNT_BASE =
-  'https://raw.githubusercontent.com/eliranwong/OpenGNT/master/OpenGNT_BASE_TEXT.tsv';
 
 let greekDataCache: Map<string, VerseWord[][]> | null = null;
 
@@ -239,7 +236,7 @@ async function getHebrewText(book: number, chapter: number): Promise<VerseWord[]
 /**
  * Check whether original text data is available for a given book/chapter.
  */
-export function getLanguageForBook(bookId: number): 'hebrew' | 'greek' {
+export function getOriginalLanguage(bookId: number): 'hebrew' | 'greek' {
   const bookInfo = BIBLE_BOOKS.find((b) => b.id === bookId);
   return bookInfo?.testament === 'NT' ? 'greek' : 'hebrew';
 }

@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import ReadingStats from '@/components/home/ReadingStats';
-import { useReadingHistoryStore } from '@/stores/readingHistoryStore';
+import { useHistoryStore } from '@/stores/historyStore';
 
 beforeEach(() => {
-  useReadingHistoryStore.setState({
+  useHistoryStore.setState({
     recentChapters: [],
     dailyVerse: null,
     streakDays: 0,
@@ -19,14 +19,14 @@ describe('ReadingStats', () => {
   });
 
   it('displays streak days', async () => {
-    useReadingHistoryStore.setState({ streakDays: 5 });
+    useHistoryStore.setState({ streakDays: 5 });
     render(<ReadingStats />);
     expect(await screen.findByText('5')).toBeInTheDocument();
     expect(await screen.findByText('연속 일수')).toBeInTheDocument();
   });
 
   it('displays total verses read', async () => {
-    useReadingHistoryStore.setState({ totalVersesRead: 42 });
+    useHistoryStore.setState({ totalVersesRead: 42 });
     render(<ReadingStats />);
     expect(await screen.findByText('42')).toBeInTheDocument();
     expect(await screen.findByText('읽은 절 수')).toBeInTheDocument();
@@ -44,7 +44,7 @@ describe('ReadingStats', () => {
   });
 
   it('counts unique chapters', async () => {
-    useReadingHistoryStore.setState({
+    useHistoryStore.setState({
       recentChapters: [
         { version: 'krv', bookId: 1, bookName: '창세기', chapter: 1, timestamp: new Date().toISOString() },
         { version: 'krv', bookId: 1, bookName: '창세기', chapter: 2, timestamp: new Date().toISOString() },

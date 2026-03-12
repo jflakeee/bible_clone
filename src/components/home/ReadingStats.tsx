@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useReadingHistoryStore } from '@/stores/readingHistoryStore';
+import { useHistoryStore } from '@/stores/historyStore';
 
 // Total chapters in the Bible
 const TOTAL_CHAPTERS = 1189;
 
 export default function ReadingStats() {
-  const { streakDays, totalVersesRead, recentChapters } = useReadingHistoryStore();
+  const { streakDays, totalVersesRead, recentChapters } = useHistoryStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

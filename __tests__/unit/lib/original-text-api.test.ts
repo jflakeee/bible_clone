@@ -7,7 +7,7 @@
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
-import { getOriginalText, getLanguageForBook } from '@/lib/original-text-api';
+import { getOriginalText, getOriginalLanguage } from '@/lib/original-text-api';
 
 // Reset module-level cache between tests
 beforeEach(() => {
@@ -16,22 +16,22 @@ beforeEach(() => {
 });
 
 describe('original-text-api', () => {
-  describe('getLanguageForBook', () => {
+  describe('getOriginalLanguage', () => {
     it('returns "hebrew" for OT books (id 1-39)', () => {
-      expect(getLanguageForBook(1)).toBe('hebrew'); // Genesis
-      expect(getLanguageForBook(19)).toBe('hebrew'); // Psalms
-      expect(getLanguageForBook(39)).toBe('hebrew'); // Malachi
+      expect(getOriginalLanguage(1)).toBe('hebrew'); // Genesis
+      expect(getOriginalLanguage(19)).toBe('hebrew'); // Psalms
+      expect(getOriginalLanguage(39)).toBe('hebrew'); // Malachi
     });
 
     it('returns "greek" for NT books (id 40-66)', () => {
-      expect(getLanguageForBook(40)).toBe('greek'); // Matthew
-      expect(getLanguageForBook(43)).toBe('greek'); // John
-      expect(getLanguageForBook(66)).toBe('greek'); // Revelation
+      expect(getOriginalLanguage(40)).toBe('greek'); // Matthew
+      expect(getOriginalLanguage(43)).toBe('greek'); // John
+      expect(getOriginalLanguage(66)).toBe('greek'); // Revelation
     });
 
     it('returns "hebrew" for invalid/unknown book ID (defaults to non-NT)', () => {
       // Books not found still return hebrew as the default (non-NT path)
-      expect(getLanguageForBook(999)).toBe('hebrew');
+      expect(getOriginalLanguage(999)).toBe('hebrew');
     });
   });
 

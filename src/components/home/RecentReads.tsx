@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useReadingHistoryStore } from '@/stores/readingHistoryStore';
+import { useHistoryStore } from '@/stores/historyStore';
 
 function timeAgo(timestamp: string): string {
   const now = Date.now();
@@ -20,7 +20,7 @@ function timeAgo(timestamp: string): string {
 }
 
 export default function RecentReads() {
-  const { recentChapters } = useReadingHistoryStore();
+  const { recentChapters } = useHistoryStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

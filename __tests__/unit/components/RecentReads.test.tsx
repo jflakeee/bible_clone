@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import RecentReads from '@/components/home/RecentReads';
-import { useReadingHistoryStore } from '@/stores/readingHistoryStore';
+import { useHistoryStore } from '@/stores/historyStore';
 
 // Mock next/link
 jest.mock('next/link', () => {
@@ -10,7 +10,7 @@ jest.mock('next/link', () => {
 });
 
 beforeEach(() => {
-  useReadingHistoryStore.setState({
+  useHistoryStore.setState({
     recentChapters: [],
     dailyVerse: null,
     streakDays: 0,
@@ -37,7 +37,7 @@ describe('RecentReads', () => {
   });
 
   it('displays recent chapters', async () => {
-    useReadingHistoryStore.setState({
+    useHistoryStore.setState({
       recentChapters: [
         { version: 'krv', bookId: 1, bookName: '창세기', chapter: 1, timestamp: new Date().toISOString() },
         { version: 'krv', bookId: 40, bookName: '마태복음', chapter: 5, timestamp: new Date().toISOString() },
@@ -50,7 +50,7 @@ describe('RecentReads', () => {
   });
 
   it('shows version label in uppercase', async () => {
-    useReadingHistoryStore.setState({
+    useHistoryStore.setState({
       recentChapters: [
         { version: 'krv', bookId: 1, bookName: '창세기', chapter: 1, timestamp: new Date().toISOString() },
       ],
@@ -68,7 +68,7 @@ describe('RecentReads', () => {
       chapter: i + 1,
       timestamp: new Date().toISOString(),
     }));
-    useReadingHistoryStore.setState({ recentChapters: chapters });
+    useHistoryStore.setState({ recentChapters: chapters });
 
     render(<RecentReads />);
     // Should show chapters 1-5 but not 6-8
@@ -78,7 +78,7 @@ describe('RecentReads', () => {
   });
 
   it('renders links with correct href', async () => {
-    useReadingHistoryStore.setState({
+    useHistoryStore.setState({
       recentChapters: [
         { version: 'krv', bookId: 1, bookName: '창세기', chapter: 3, timestamp: new Date().toISOString() },
       ],
@@ -90,7 +90,7 @@ describe('RecentReads', () => {
   });
 
   it('shows time ago text', async () => {
-    useReadingHistoryStore.setState({
+    useHistoryStore.setState({
       recentChapters: [
         { version: 'krv', bookId: 1, bookName: '창세기', chapter: 1, timestamp: new Date().toISOString() },
       ],

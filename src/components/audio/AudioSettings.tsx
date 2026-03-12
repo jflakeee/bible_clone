@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { SPEED_OPTIONS, LANGUAGE_OPTIONS, getAvailableVoices } from '@/lib/tts-service';
+import { SPEED_OPTIONS, LANGUAGE_OPTIONS } from '@/lib/tts-service';
 
 interface AudioSettingsProps {
   speed: number;
@@ -24,7 +24,9 @@ export default function AudioSettings({
 
   useEffect(() => {
     const loadVoices = () => {
-      const available = getAvailableVoices();
+      const available = typeof window !== 'undefined' && window.speechSynthesis
+        ? window.speechSynthesis.getVoices()
+        : [];
       setVoices(available);
     };
 

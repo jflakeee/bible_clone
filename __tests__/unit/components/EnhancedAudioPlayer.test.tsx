@@ -4,31 +4,26 @@ import EnhancedAudioPlayer from '@/components/audio/EnhancedAudioPlayer';
 import { useTTSStore } from '@/stores/ttsStore';
 
 // Mock tts-service module
-const mockSpeak = jest.fn().mockResolvedValue(undefined);
-const mockStop = jest.fn();
-const mockPauseTTS = jest.fn();
-const mockResumeTTS = jest.fn();
-const mockGetVoices = jest.fn().mockResolvedValue([]);
-
 jest.mock('@/lib/tts-service', () => ({
-  getTTSService: () => ({
-    speak: mockSpeak,
-    stop: mockStop,
-    pause: mockPauseTTS,
-    resume: mockResumeTTS,
-    getVoices: mockGetVoices,
-    isSupported: () => true,
-  }),
-  TTS_PROVIDERS: [
-    { id: 'browser', name: 'Browser', nameKo: '브라우저', description: 'Web Speech API', available: true, premium: false },
-    { id: 'google', name: 'Google Cloud', nameKo: 'Google Cloud', description: 'Google Cloud TTS', available: true, premium: true },
-  ],
+  ttsService: {
+    speak: jest.fn().mockResolvedValue(undefined),
+    stop: jest.fn(),
+    pause: jest.fn(),
+    resume: jest.fn(),
+    getVoices: jest.fn().mockResolvedValue([]),
+    isSupported: jest.fn().mockReturnValue(true),
+  },
   SPEED_OPTIONS: [
     { value: 0.5, label: '0.5x' },
     { value: 1.0, label: '1x' },
     { value: 1.5, label: '1.5x' },
   ],
 }));
+
+// Get references to mocked functions after jest.mock hoisting
+import { ttsService } from '@/lib/tts-service';
+const mockSpeak = ttsService.speak as jest.Mock;
+const mockStop = ttsService.stop as jest.Mock;
 
 // Mock LanguageSelector
 jest.mock('@/components/audio/LanguageSelector', () => {
@@ -46,7 +41,6 @@ const sampleVerses = [
 beforeEach(() => {
   jest.clearAllMocks();
   useTTSStore.setState({
-    selectedProvider: 'browser',
     selectedLanguage: 'ko-KR',
     selectedSpeed: 1.0,
     selectedVoice: '',
@@ -139,11 +133,10 @@ describe('EnhancedAudioPlayer', () => {
       expect(screen.getByText('설정')).toBeInTheDocument();
     });
 
-    it('shows provider options in provider tab', () => {
+    it('shows browser provider info in provider tab', () => {
       render(<EnhancedAudioPlayer verses={sampleVerses} />);
       fireEvent.click(screen.getByLabelText('설정'));
       expect(screen.getByText('브라우저')).toBeInTheDocument();
-      expect(screen.getByText('Google Cloud')).toBeInTheDocument();
     });
 
     it('shows language selector in language tab', () => {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useReadingHistoryStore } from '@/stores/readingHistoryStore';
+import { useHistoryStore } from '@/stores/historyStore';
 import { BIBLE_BOOKS, SUPPORTED_VERSIONS } from '@/lib/constants';
 
 // Curated list of well-known verses for daily verse
@@ -37,7 +37,7 @@ function getDailyVerseIndex(): number {
 }
 
 export default function DailyVerseCard() {
-  const { dailyVerse, setDailyVerse } = useReadingHistoryStore();
+  const { dailyVerse, setDailyVerse } = useHistoryStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

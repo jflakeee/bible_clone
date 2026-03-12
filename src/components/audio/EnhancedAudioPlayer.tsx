@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { getTTSService, TTS_PROVIDERS, SPEED_OPTIONS, type TTSProvider } from '@/lib/tts-service';
+import { ttsService, SPEED_OPTIONS } from '@/lib/tts-service';
 import { useTTSStore } from '@/stores/ttsStore';
 import LanguageSelector from './LanguageSelector';
 
@@ -25,11 +25,9 @@ export default function EnhancedAudioPlayer({
   chapter,
 }: EnhancedAudioPlayerProps) {
   const {
-    selectedProvider,
     selectedLanguage,
     selectedSpeed,
     selectedVoice,
-    setProvider,
     setLanguage,
     setSpeed,
     setVoice,
@@ -44,24 +42,21 @@ export default function EnhancedAudioPlayer({
   const [playerView, setPlayerView] = useState<PlayerView>('full');
   const [availableVoices, setAvailableVoices] = useState<string[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [providerError, setProviderError] = useState<string | null>(null);
 
   const isPlayingRef = useRef(false);
   const currentIndexRef = useRef(0);
 
-  // Load voices when language or provider changes
+  // Load voices when language changes
   useEffect(() => {
-    const service = getTTSService(selectedProvider);
-    service.getVoices(selectedLanguage).then((voices) => {
+    ttsService.getVoices(selectedLanguage).then((voices) => {
       setAvailableVoices(voices.map((v) => v.name));
     });
-  }, [selectedProvider, selectedLanguage]);
+  }, [selectedLanguage]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      const service = getTTSService(selectedProvider);
-      service.stop();
+      ttsService.stop();
       isPlayingRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,13 +66,11 @@ export default function EnhancedAudioPlayer({
     async (startIndex: number = 0) => {
       if (verses.length === 0) return;
 
-      const service = getTTSService(selectedProvider);
-      service.stop();
+      ttsService.stop();
 
       isPlayingRef.current = true;
       setIsPlaying(true);
       setIsPaused(false);
-      setProviderError(null);
 
       for (let i = startIndex; i < verses.length; i++) {
         if (!isPlayingRef.current) break;
@@ -86,8 +79,8 @@ export default function EnhancedAudioPlayer({
         setCurrentVerseIndex(i);
 
         try {
-          await service.speak(verses[i].text, {
-            provider: selectedProvider,
+          await ttsService.speak(verses[i].text, {
+            provider: 'browser',
             language: selectedLanguage,
             speed: selectedSpeed,
             voice: selectedVoice || undefined,
@@ -96,11 +89,6 @@ export default function EnhancedAudioPlayer({
           if (!isPlayingRef.current) break;
           const message = err instanceof Error ? err.message : 'Unknown error';
           if (message === 'canceled') break;
-          // If Google fails, suggest browser fallback
-          if (selectedProvider === 'google') {
-            setProviderError('Google TTS 사용 불가. 브라우저 TTS로 전환해주세요.');
-            break;
-          }
           // For browser TTS errors, continue to next verse
           console.error('TTS error on verse', verses[i].verse, message);
         }
@@ -112,35 +100,32 @@ export default function EnhancedAudioPlayer({
         setCurrentVerseIndex(-1);
       }
     },
-    [verses, selectedProvider, selectedLanguage, selectedSpeed, selectedVoice]
+    [verses, selectedLanguage, selectedSpeed, selectedVoice]
   );
 
   const handlePlayPause = useCallback(() => {
     if (isPlaying) {
       // Pause
-      const service = getTTSService(selectedProvider);
-      service.pause();
+      ttsService.pause();
       setIsPaused(true);
       setIsPlaying(false);
     } else if (isPaused) {
       // Resume
-      const service = getTTSService(selectedProvider);
-      service.resume();
+      ttsService.resume();
       setIsPaused(false);
       setIsPlaying(true);
     } else {
       playAll(0);
     }
-  }, [isPlaying, isPaused, selectedProvider, playAll]);
+  }, [isPlaying, isPaused, playAll]);
 
   const handleStop = useCallback(() => {
-    const service = getTTSService(selectedProvider);
-    service.stop();
+    ttsService.stop();
     isPlayingRef.current = false;
     setIsPlaying(false);
     setIsPaused(false);
     setCurrentVerseIndex(-1);
-  }, [selectedProvider]);
+  }, []);
 
   const handleVerseClick = useCallback(
     (index: number) => {
@@ -319,52 +304,9 @@ export default function EnhancedAudioPlayer({
 
           {/* Provider selection */}
           {activeTab === 'player' && (
-            <div className="space-y-2">
-              {TTS_PROVIDERS.map((prov) => (
-                <button
-                  key={prov.id}
-                  onClick={() => {
-                    if (prov.available) {
-                      setProvider(prov.id);
-                      setProviderError(null);
-                    }
-                  }}
-                  disabled={!prov.available}
-                  className={`flex w-full items-center justify-between rounded-xl border-2 px-4 py-3 text-left transition-all ${
-                    selectedProvider === prov.id
-                      ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950'
-                      : prov.available
-                      ? 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600'
-                      : 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-50 dark:border-gray-800 dark:bg-gray-950'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                        {prov.nameKo}
-                      </span>
-                      {prov.premium && (
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900 dark:text-amber-300">
-                          프리미엄
-                        </span>
-                      )}
-                      {!prov.available && (
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-500 dark:bg-gray-800">
-                          준비 중
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                      {prov.description}
-                    </p>
-                  </div>
-                  {selectedProvider === prov.id && (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5 flex-shrink-0 text-blue-500">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </button>
-              ))}
+            <div className="rounded-xl border-2 border-blue-500 bg-blue-50 px-4 py-3 dark:border-blue-400 dark:bg-blue-950">
+              <div className="text-sm font-medium text-gray-800 dark:text-gray-200">브라우저</div>
+              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Web Speech API (무료)</p>
             </div>
           )}
 
@@ -483,13 +425,6 @@ export default function EnhancedAudioPlayer({
           <span>{verses.length}절</span>
         </div>
       </div>
-
-      {/* Error message */}
-      {providerError && (
-        <div className="mx-4 mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">
-          {providerError}
-        </div>
-      )}
 
       {/* Main controls */}
       <div className="flex items-center justify-center gap-4 px-4 py-4">

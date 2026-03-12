@@ -5,8 +5,8 @@ import { useAudio, type VerseForAudio } from '@/hooks/useAudio';
 import EnhancedAudioPlayer from '@/components/audio/EnhancedAudioPlayer';
 import type { VerseItem } from '@/components/audio/EnhancedAudioPlayer';
 import AudioSettings from '@/components/audio/AudioSettings';
-import { LANGUAGE_OPTIONS } from '@/lib/tts-service';
 import type { Book } from '@/types/bible';
+import { BIBLE_API_BASE } from '@/lib/constants';
 
 interface AudioPageClientProps {
   books: Book[];
@@ -72,7 +72,7 @@ export default function AudioPageClient({ books, versions }: AudioPageClientProp
     try {
       const translationId = VERSION_MAP[selectedVersion] || selectedVersion;
       const res = await fetch(
-        `https://bible.helloao.org/api/${translationId}/${selectedBook.abbreviation}/${selectedChapter}.json`
+        `${BIBLE_API_BASE}/${translationId}/${selectedBook.abbreviation}/${selectedChapter}.json`
       );
       if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
       const data = await res.json();

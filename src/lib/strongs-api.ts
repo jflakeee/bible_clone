@@ -1,11 +1,8 @@
 import { StrongsEntry } from '@/types/bible';
+import { STRONGS_HEBREW_URL, STRONGS_GREEK_URL } from '@/lib/constants';
 
 // Strong's dictionaries are .js files with var assignments, not pure JSON.
 // We fetch them, strip the var assignment, and parse the JSON object.
-const STRONGS_HEBREW_URL =
-  'https://raw.githubusercontent.com/openscriptures/strongs/master/hebrew/strongs-hebrew-dictionary.js';
-const STRONGS_GREEK_URL =
-  'https://raw.githubusercontent.com/openscriptures/strongs/master/greek/strongs-greek-dictionary.js';
 
 let hebrewCache: Record<string, RawStrongsEntry> | null = null;
 let greekCache: Record<string, RawStrongsEntry> | null = null;

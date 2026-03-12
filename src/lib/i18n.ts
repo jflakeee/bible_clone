@@ -93,3 +93,51 @@ export function getAvailableLocales(): { code: Locale; name: string }[] {
     { code: 'en', name: 'English' },
   ];
 }
+
+export const LANGUAGE_KO_MAP: Record<string, string> = {
+  English: '영어',
+  Korean: '한국어',
+  Chinese: '중국어',
+  Japanese: '일본어',
+  Spanish: '스페인어',
+  French: '프랑스어',
+  German: '독일어',
+  Portuguese: '포르투갈어',
+  Russian: '러시아어',
+  Arabic: '아랍어',
+  Hebrew: '히브리어',
+  Greek: '그리스어',
+  Latin: '라틴어',
+  Italian: '이탈리아어',
+  Dutch: '네덜란드어',
+  Swedish: '스웨덴어',
+  Norwegian: '노르웨이어',
+  Danish: '덴마크어',
+  Finnish: '핀란드어',
+  Polish: '폴란드어',
+  Czech: '체코어',
+  Turkish: '터키어',
+  Thai: '태국어',
+  Vietnamese: '베트남어',
+  Indonesian: '인도네시아어',
+  Hindi: '힌디어',
+  Swahili: '스와힐리어',
+  Tagalog: '타갈로그어',
+  Romanian: '루마니아어',
+  Ukrainian: '우크라이나어',
+  Hungarian: '헝가리어',
+  Bulgarian: '불가리아어',
+  Croatian: '크로아티아어',
+  Serbian: '세르비아어',
+  Slovak: '슬로바키아어',
+  Slovenian: '슬로베니아어',
+  Malay: '말레이어',
+  Persian: '페르시아어',
+  Urdu: '우르두어',
+  Amharic: '암하라어',
+  Afrikaans: '아프리칸스어',
+};
+
+export function getLanguageKo(language: string): string {
+  return LANGUAGE_KO_MAP[language] || language;
+}

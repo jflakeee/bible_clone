@@ -1,6 +1,22 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { ReadingHistoryEntry, ReadingStats } from '@/types/history';
+import { generateId } from '@/lib/generate-id';
+
+export interface RecentChapter {
+  version: string;
+  bookId: number;
+  bookName: string;
+  chapter: number;
+  timestamp: string;
+}
+
+export interface DailyVerse {
+  verse: number;
+  text: string;
+  reference: string;
+  date: string;
+}
 
 const MAX_HISTORY = 500;
 
@@ -11,18 +27,31 @@ interface HistoryState {
   getHistoryByType: (actionType: ReadingHistoryEntry['actionType']) => ReadingHistoryEntry[];
   getReadingStats: () => ReadingStats;
   clearHistory: () => void;
+  recentChapters: RecentChapter[];
+  dailyVerse: DailyVerse | null;
+  totalVersesRead: number;
+  streakDays: number;
+  lastReadDate: string | null;
+  addChapterVisit: (visit: Omit<RecentChapter, 'timestamp'>) => void;
+  setDailyVerse: (verse: DailyVerse) => void;
+  addVersesRead: (count: number) => void;
 }
 
 export const useHistoryStore = create<HistoryState>()(
   persist(
     (set, get) => ({
       history: [],
+      recentChapters: [],
+      dailyVerse: null,
+      totalVersesRead: 0,
+      streakDays: 0,
+      lastReadDate: null,
 
       addHistory: (entry) =>
         set((state) => {
           const newEntry: ReadingHistoryEntry = {
             ...entry,
-            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+            id: generateId(),
             createdAt: new Date().toISOString(),
           };
           const updated = [newEntry, ...state.history].slice(0, MAX_HISTORY);
@@ -89,6 +118,39 @@ export const useHistoryStore = create<HistoryState>()(
       },
 
       clearHistory: () => set({ history: [] }),
+
+      addChapterVisit: (visit) =>
+        set((state) => {
+          const now = new Date();
+          const today = now.toISOString().split('T')[0];
+          const newEntry: RecentChapter = {
+            ...visit,
+            timestamp: now.toISOString(),
+          };
+          const filtered = state.recentChapters.filter(
+            (c) =>
+              !(c.version === visit.version && c.bookId === visit.bookId && c.chapter === visit.chapter)
+          );
+          const updated = [newEntry, ...filtered].slice(0, 20);
+          let newStreak = state.streakDays;
+          const lastDate = state.lastReadDate;
+          if (lastDate !== today) {
+            if (lastDate) {
+              const yesterday = new Date(now);
+              yesterday.setDate(yesterday.getDate() - 1);
+              const yesterdayStr = yesterday.toISOString().split('T')[0];
+              newStreak = lastDate === yesterdayStr ? state.streakDays + 1 : 1;
+            } else {
+              newStreak = 1;
+            }
+          }
+          return { recentChapters: updated, streakDays: newStreak, lastReadDate: today };
+        }),
+
+      setDailyVerse: (verse) => set({ dailyVerse: verse }),
+
+      addVersesRead: (count) =>
+        set((state) => ({ totalVersesRead: state.totalVersesRead + count })),
     }),
     {
       name: 'history-storage',

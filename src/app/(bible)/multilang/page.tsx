@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { BIBLE_BOOKS } from '@/lib/constants';
+import { BIBLE_BOOKS, BIBLE_API_BASE } from '@/lib/constants';
 import { t } from '@/lib/i18n';
 import { useLanguageStore } from '@/stores/languageStore';
 import type { BibleTranslation, MultiLangChapterResponse } from '@/lib/multilang-api';
@@ -97,7 +97,7 @@ export default function MultiLangPage() {
     const promises = selectedTranslations.map(async (tr, idx) => {
       try {
         const res = await fetch(
-          `https://bible.helloao.org/api/${tr.id}/${bookAbbr}/${chapter}.json`
+          `${BIBLE_API_BASE}/${tr.id}/${bookAbbr}/${chapter}.json`
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: MultiLangChapterResponse = await res.json();

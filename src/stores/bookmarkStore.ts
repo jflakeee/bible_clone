@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Bookmark, BOOKMARK_COLORS } from '@/types/bookmark';
+import { generateId } from '@/lib/generate-id';
 
 interface BookmarkState {
   bookmarks: Bookmark[];
@@ -25,7 +26,7 @@ export const useBookmarkStore = create<BookmarkState>()(
             ...state.bookmarks,
             {
               ...bookmark,
-              id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+              id: generateId(),
               createdAt: new Date().toISOString(),
             },
           ],

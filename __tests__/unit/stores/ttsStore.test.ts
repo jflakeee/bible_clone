@@ -23,7 +23,6 @@ beforeEach(() => {
 
   // Reset store to defaults
   useTTSStore.setState({
-    selectedProvider: 'browser',
     selectedLanguage: 'ko-KR',
     selectedSpeed: 1.0,
     selectedVoice: '',
@@ -34,10 +33,6 @@ beforeEach(() => {
 
 describe('ttsStore', () => {
   describe('initial state', () => {
-    it('has default provider "browser"', () => {
-      expect(useTTSStore.getState().selectedProvider).toBe('browser');
-    });
-
     it('has default language "ko-KR"', () => {
       expect(useTTSStore.getState().selectedLanguage).toBe('ko-KR');
     });
@@ -56,21 +51,6 @@ describe('ttsStore', () => {
 
     it('has miniPlayerOpen false', () => {
       expect(useTTSStore.getState().miniPlayerOpen).toBe(false);
-    });
-  });
-
-  describe('setProvider', () => {
-    it('updates provider', () => {
-      useTTSStore.getState().setProvider('google');
-      expect(useTTSStore.getState().selectedProvider).toBe('google');
-    });
-
-    it('persists to localStorage', () => {
-      useTTSStore.getState().setProvider('google');
-      expect(window.localStorage.setItem).toHaveBeenCalledWith(
-        'bible-tts-provider',
-        '"google"'
-      );
     });
   });
 

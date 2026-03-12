@@ -1,15 +1,12 @@
 import { create } from 'zustand';
-import type { TTSProvider } from '@/lib/tts-service';
 
 interface TTSState {
-  selectedProvider: TTSProvider;
   selectedLanguage: string;
   selectedSpeed: number;
   selectedVoice: string;
   autoPlay: boolean;
   miniPlayerOpen: boolean;
 
-  setProvider: (provider: TTSProvider) => void;
   setLanguage: (language: string) => void;
   setSpeed: (speed: number) => void;
   setVoice: (voice: string) => void;
@@ -40,17 +37,12 @@ function saveToStorage(key: string, value: unknown): void {
 const STORAGE_PREFIX = 'bible-tts-';
 
 export const useTTSStore = create<TTSState>((set) => ({
-  selectedProvider: loadFromStorage<TTSProvider>(`${STORAGE_PREFIX}provider`, 'browser'),
   selectedLanguage: loadFromStorage<string>(`${STORAGE_PREFIX}language`, 'ko-KR'),
   selectedSpeed: loadFromStorage<number>(`${STORAGE_PREFIX}speed`, 1.0),
   selectedVoice: loadFromStorage<string>(`${STORAGE_PREFIX}voice`, ''),
   autoPlay: loadFromStorage<boolean>(`${STORAGE_PREFIX}autoPlay`, false),
   miniPlayerOpen: false,
 
-  setProvider: (provider) => {
-    saveToStorage(`${STORAGE_PREFIX}provider`, provider);
-    set({ selectedProvider: provider });
-  },
   setLanguage: (language) => {
     saveToStorage(`${STORAGE_PREFIX}language`, language);
     set({ selectedLanguage: language });

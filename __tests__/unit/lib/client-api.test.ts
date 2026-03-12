@@ -28,7 +28,7 @@ jest.mock('@/lib/multilang-api', () => ({
 
 jest.mock('@/lib/original-text-api', () => ({
   getOriginalText: jest.fn(),
-  getLanguageForBook: jest.fn((id: number) => (id >= 40 ? 'greek' : 'hebrew')),
+  getOriginalLanguage: jest.fn((id: number) => (id >= 40 ? 'greek' : 'hebrew')),
 }));
 
 jest.mock('@/lib/strongs-api', () => ({

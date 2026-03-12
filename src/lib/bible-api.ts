@@ -1,6 +1,4 @@
-import { VERSION_MAP, BOOK_ID_MAP } from '@/lib/constants';
-
-const API_BASE = process.env.NEXT_PUBLIC_BIBLE_API_BASE || 'https://bible.helloao.org/api';
+import { VERSION_MAP, BOOK_ID_MAP, BIBLE_API_BASE as API_BASE } from '@/lib/constants';
 
 export function getTranslationId(version: string): string {
   return VERSION_MAP[version.toLowerCase()] || version;

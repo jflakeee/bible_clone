@@ -8,7 +8,7 @@
 import { BIBLE_BOOKS, SUPPORTED_VERSIONS } from '@/lib/constants';
 import { getChapter, getTranslationId, getBookApiId } from '@/lib/bible-api';
 import { getTranslationsByLanguage } from '@/lib/multilang-api';
-import { getOriginalText, getLanguageForBook } from '@/lib/original-text-api';
+import { getOriginalText, getOriginalLanguage } from '@/lib/original-text-api';
 import { getStrongsEntry, searchStrongs } from '@/lib/strongs-api';
 import { BIBLICAL_PLACES } from '@/lib/map-data';
 import {
@@ -152,7 +152,7 @@ export async function fetchOriginalText(book: number, chapter: number) {
   }
 
   const verses = await getOriginalText(book, chapter);
-  const language = getLanguageForBook(book);
+  const language = getOriginalLanguage(book);
 
   return { book, chapter, language, verses };
 }
