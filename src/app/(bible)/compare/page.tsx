@@ -12,12 +12,14 @@ export default function ComparePage() {
   const [verseStart, setVerseStart] = useState(1);
   const [verseEnd, setVerseEnd] = useState(5);
   const [selectedVersions, setSelectedVersions] = useState<string[]>(['krv', 'kjv']);
+  const [showOriginal, setShowOriginal] = useState(false);
   const [results, setResults] = useState<CompareResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const selectedBook = BIBLE_BOOKS.find((b) => b.id === bookId);
   const maxChapters = selectedBook?.chapters || 1;
+  const originalLang = selectedBook?.testament === 'NT' ? '헬라어' : '히브리어';
 
   const fetchComparison = useCallback(async () => {
     if (selectedVersions.length === 0) return;
@@ -31,6 +33,7 @@ export default function ComparePage() {
         verseStart,
         verseEnd,
         versions: selectedVersions,
+        includeOriginal: showOriginal,
       });
       setResults(data.results || []);
     } catch (err) {
@@ -38,7 +41,7 @@ export default function ComparePage() {
     } finally {
       setLoading(false);
     }
-  }, [bookId, chapter, verseStart, verseEnd, selectedVersions]);
+  }, [bookId, chapter, verseStart, verseEnd, selectedVersions, showOriginal]);
 
   useEffect(() => {
     fetchComparison();
@@ -155,6 +158,26 @@ export default function ComparePage() {
             ))}
           </div>
         </div>
+
+        {/* Original language toggle */}
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-600">원어:</span>
+          <button
+            onClick={() => setShowOriginal(!showOriginal)}
+            className={`text-sm px-3 py-1.5 rounded-md border transition-colors ${
+              showOriginal
+                ? 'bg-amber-600 text-white border-amber-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:border-amber-400'
+            }`}
+          >
+            {originalLang} 원문
+          </button>
+          {showOriginal && (
+            <span className="text-xs text-amber-600">
+              단어별 원어 + 번역 표시
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Results */}
@@ -171,7 +194,7 @@ export default function ComparePage() {
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             {selectedBook?.nameKo} {chapter}장 {verseStart}-{verseEnd}절
           </h2>
-          <CompareView results={results} versions={selectedVersions} />
+          <CompareView results={results} versions={selectedVersions} showOriginal={showOriginal} />
         </div>
       )}
     </div>

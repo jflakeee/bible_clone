@@ -74,8 +74,9 @@ export async function fetchBibleCompare(params: {
   verseStart: number;
   verseEnd: number;
   versions: string[];
+  includeOriginal?: boolean;
 }): Promise<{ results: CompareResult[] }> {
-  const { book: bookId, chapter, verseStart, verseEnd, versions: versionIds } = params;
+  const { book: bookId, chapter, verseStart, verseEnd, versions: versionIds, includeOriginal } = params;
 
   const book = BIBLE_BOOKS.find((b) => b.id === bookId);
   if (!book) {
@@ -89,16 +90,22 @@ export async function fetchBibleCompare(params: {
     throw new Error('유효한 번역본이 지정되지 않았습니다.');
   }
 
-  const chapterResults = await Promise.all(
-    validVersions.map(async (version) => {
-      try {
-        const data = await getChapter(version, book.name, chapter);
-        return { version, verses: data.verses || [] };
-      } catch {
-        return { version, verses: [] };
-      }
-    }),
-  );
+  // Fetch translations and optionally original text in parallel
+  const [chapterResults, originalVerses] = await Promise.all([
+    Promise.all(
+      validVersions.map(async (version) => {
+        try {
+          const data = await getChapter(version, book.name, chapter);
+          return { version, verses: data.verses || [] };
+        } catch {
+          return { version, verses: [] };
+        }
+      }),
+    ),
+    includeOriginal
+      ? getOriginalText(bookId, chapter).catch(() => [] as import('@/types/bible').VerseWord[][])
+      : Promise.resolve([] as import('@/types/bible').VerseWord[][]),
+  ]);
 
   const results: CompareResult[] = [];
   for (let v = verseStart; v <= verseEnd; v++) {
@@ -112,10 +119,20 @@ export async function fetchBibleCompare(params: {
       };
     });
 
-    results.push({
+    const result: CompareResult = {
       verse: v,
       versions: versionTexts,
-    });
+    };
+
+    // originalVerses is 0-indexed (verse 1 = index 0)
+    if (includeOriginal && originalVerses.length > 0) {
+      const words = originalVerses[v - 1];
+      if (words && words.length > 0) {
+        result.originalWords = words;
+      }
+    }
+
+    results.push(result);
   }
 
   return { results };

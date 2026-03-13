@@ -55,6 +55,7 @@ export interface CompareResult {
     abbreviation: string;
     text: string;
   }[];
+  originalWords?: VerseWord[];
 }
 
 export interface SearchResult {
